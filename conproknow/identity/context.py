@@ -1,5 +1,5 @@
 from typing import Set
-from knowledge_graph import KG
+from conproknow.kg.knowledge_graph import KG
 from typing import List, Tuple
 from json import load
 

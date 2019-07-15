@@ -1,6 +1,6 @@
-from context import Context
 from typing import Iterator, Set
 from json import dumps, load
+from conproknow.identity.context import Context
 
 
 class Lattice(object):
