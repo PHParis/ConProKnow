@@ -89,3 +89,13 @@ class Context:
         #                 context.parent_ids = None
         #             lattice.dict[lvl].add(context)
         # return lattice
+
+
+class ContextWGoldStand(Context):
+
+    def __init__(self, c: Context, gold_standard: Set[str]):
+        super(ContextWGoldStand, self).__init__(c.resource,
+                                                c.id, c.parent_ids, c.properties, c.instances)
+        self.scores = c.scores
+        self.candidates = c.candidates
+        self.gold_standard: Set[str] = gold_standard

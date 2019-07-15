@@ -48,5 +48,9 @@ if __name__ == "__main__":
             assert False, "unhandled option"
     kg: KG = HDT(hdt_file_path)
     lattice = build_lattice(
-        "http://www.wikidata.org.org/entity/Q2343504", kg, None, False)
-    print(f"{lattice}")
+        "http://www.wikidata.org/entity/Q2343504", kg, None, False)
+
+    lattice = build_lattice(
+        "http://www.wikidata.org/entity/Q2343504", kg, None, False)
+    # print(f"{lattice}")
+    print("end!")
