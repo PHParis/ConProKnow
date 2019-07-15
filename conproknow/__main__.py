@@ -15,13 +15,24 @@ def usage():
 
 if __name__ == "__main__":
     try:
-        opts, args = getopt.getopt(argv[1:], "ho:r:f:", [
-                                   "help", "output=", "resource=", "file="])
+        opts, args = getopt(argv[1:], "ho:r:f:", [
+            "help", "output=", "resource=", "file="])
     except GetoptError as err:
         # print help information and exit:
         print(err)  # will print something like "option -a not recognized"
         usage()
         exit(2)
+
+    verbose = False
+    hdt_file_path = "/home/ph/Téléchargements/4b3f9dd9aee2ad2cba453e23a8f4ae39an.hdt"
+    resource = "http://ld.zdb-services.de/resource/1000005-7"
+    output_dir = "/home/ph/Téléchargements/"
+    hdt_file_path = "/data2/hamdif/doctorants/ph/linkeddatasets/hdt/dbpedia/dbpedia2016-04en.hdt"
+    hdt_file_path = "/data2/hamdif/doctorants/ph/linkeddatasets/hdt/lod-a-lot/LOD_a_lot_v1.hdt"
+    resource = "http://dbpedia.org/resource/Paris"
+    resource = "http://dbpedia.org/resource/France"
+    output_dir = "/data2/hamdif/doctorants/ph/xp/"
+
     for o, a in opts:
         if o in ("-h", "--help"):
             usage()
@@ -35,6 +46,6 @@ if __name__ == "__main__":
         else:
             assert False, "unhandled option"
         lattice = Lattice("test")
-    KG: KG = HDT(hdt_file_path)
+    kg: KG = HDT(hdt_file_path)
     print("hello")
     print(f"{lattice}")
