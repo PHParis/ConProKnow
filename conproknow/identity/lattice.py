@@ -1,4 +1,4 @@
-from typing import Iterator, Set
+from typing import Iterator, Set, Tuple
 from json import dumps, load
 from conproknow.identity.context import Context
 
@@ -88,7 +88,7 @@ class Lattice(object):
         if nb_elements_at_level_1 <= 1:  # There is only one element at level one, thus the lattice is composed of only one node
             return self
         super_contexts = list(self.get_contexts(level - 1))
-        visited_nodes = set()
+        visited_nodes: Set[tuple] = set()
         for i in range(len(super_contexts)):
             c_1: Context = super_contexts[i]
             for j in range(i + 1, len(super_contexts)):

@@ -1,4 +1,4 @@
-from typing import Iterator, Tuple
+from typing import Iterator, Tuple, Optional
 
 
 class KG(object):
@@ -28,12 +28,12 @@ class KG(object):
         raise NotImplementedError
 
     def nb_objects(self) -> int:
-        NotImplementedError
+        raise NotImplementedError
 
     def nb_shared(self) -> int:
         raise NotImplementedError
 
-    def get_description(self, resource: str) -> str:
+    def get_description(self, resource: str) -> Optional[str]:
         """Get english description of the specified resource.
         Use the http://schema.org/description property.
         Trailing double quotes and @en are removed!"""

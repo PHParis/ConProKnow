@@ -1,11 +1,11 @@
-from typing import Set
+from typing import Set, Optional
 from conproknow.kg.knowledge_graph import KG
 from typing import List, Tuple
 from json import load
 
 
 class Context:
-    def __init__(self, resource: str, id: int, parent_ids: Set[int], properties: Set[str], instances: Set[str]):
+    def __init__(self, resource: str, id: int, parent_ids: Optional[Set[int]], properties: Set[str], instances: Set[str]):
         self.properties: Set[str] = properties
         self.instances: Set[str] = instances
         self.id: int = id

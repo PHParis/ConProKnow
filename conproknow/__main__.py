@@ -3,6 +3,7 @@ from sys import argv, exit
 from conproknow.identity.lattice import Lattice
 from conproknow.kg.knowledge_graph import KG
 from conproknow.kg.hdt_knowledge_graph import HDT
+from conproknow.algo.lattice_builder import build_lattice
 
 
 def usage():
@@ -45,7 +46,7 @@ if __name__ == "__main__":
             hdt_file_path = a
         else:
             assert False, "unhandled option"
-        lattice = Lattice("test")
     kg: KG = HDT(hdt_file_path)
-    print("hello")
+    lattice = build_lattice(
+        "http://www.wikidata.org.org/entity/Q2343504", kg, None, False)
     print(f"{lattice}")

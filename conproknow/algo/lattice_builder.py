@@ -1,15 +1,19 @@
 from os.path import join, isfile
+from typing import Set, Dict, Optional, List
+from json import load, dumps
 from conproknow.utils.helpers import keep_alphanumeric_only
 from conproknow.identity.lattice import Lattice
 from conproknow.utils.wikidata import get_wiki_id
+from conproknow.kg.hdt_knowledge_graph import KG
 
 
-def build_lattice(resource: str, kg: KG, output_dir: str, saving_partial_results: bool, props_to_ignore: Set[str] = None, subjects_to_filter: Set[str] = None, desc_by_props: Dict[str, str] = None, output: bool = False) -> Lattice:
+def build_lattice(resource: str, kg: KG, output_dir: Optional[str], saving_partial_results: bool, props_to_ignore: Set[str] = None, subjects_to_filter: Set[str] = None, desc_by_props: Dict[str, str] = None, output: bool = False) -> Optional[Lattice]:
     dump_path_context = join(
         output_dir, f"identity_context_{keep_alphanumeric_only(resource)}.json") if output_dir is not None else None
     if dump_path_context is not None and isfile(dump_path_context):
         return Lattice.load_from_file(resource, dump_path_context)
-    result = dict()  # dictionaire de dictionaire. La première clé est la propriété et la seconde les valeurs que peut prendre cette propriété. Finalement on a un set des resources ayant meme valeur pour cette propriété que la resource en paramètre
+    # dictionaire de dictionaire. La première clé est la propriété et la seconde les valeurs que peut prendre cette propriété. Finalement on a un set des resources ayant meme valeur pour cette propriété que la resource en paramètre
+    result: Dict[str, Dict[str, List[str]]] = dict()
     dump_path = join(
         output_dir, f"prop_obj_instances_{keep_alphanumeric_only(resource)}.json") if output_dir is not None else None
     if dump_path is not None and isfile(dump_path):
