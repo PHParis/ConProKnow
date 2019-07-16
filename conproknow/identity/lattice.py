@@ -42,7 +42,7 @@ class Lattice(object):
                     context = Context(r, int(c["id"]), set(c["parent_ids"]), set(
                         c["properties"]), set(c["instances"]))
                     if len(context.parent_ids) == 0:
-                        context.parent_ids = None
+                        context.parent_ids = set()
                     lattice.dict[lvl].add(context)
         return lattice
 

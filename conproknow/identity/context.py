@@ -1,11 +1,11 @@
-from typing import Set, Optional
+from typing import Set
 from conproknow.kg.knowledge_graph import KG
 from typing import List, Tuple
 from json import load
 
 
 class Context:
-    def __init__(self, resource: str, id: int, parent_ids: Optional[Set[int]], properties: Set[str], instances: Set[str]):
+    def __init__(self, resource: str, id: int, parent_ids: Set[int], properties: Set[str], instances: Set[str]):
         self.properties: Set[str] = properties
         self.instances: Set[str] = instances
         self.id: int = id
@@ -68,7 +68,7 @@ class Context:
                               ) if "instances" in data else set(),
                 id=int(data["id"]) if "id" in data else -1,
                 parent_ids={
-                    int(i) for i in data["parent_ids"]} if "parent_ids" in data else None
+                    int(i) for i in data["parent_ids"]} if "parent_ids" in data else set()
             )
             if "scores" in data:
                 c.scores = [t for t in data["scores"]]

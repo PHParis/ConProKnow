@@ -147,5 +147,4 @@ dmypy.json
 *.json
 .mypy_cache
 *.py.*.py
-!paris_sameas_chain.json
-!entity_sample.json
+dataset/

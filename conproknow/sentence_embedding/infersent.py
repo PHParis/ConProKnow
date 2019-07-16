@@ -1,0 +1,31 @@
+from typing import List
+import torch
+from numpy import ndarray
+from conproknow.sentence_embedding.encoder import encoder
+from conproknow.sentence_embedding.infersent import InferSent
+
+
+class infersent(encoder):
+    def __ini__(self):
+        V = 2
+        MODEL_PATH = 'dataset/infersent%s.pkl' % V
+        params_model = {'bsize': 64, 'word_emb_dim': 300, 'enc_lstm_dim': 2048,
+                        'pool_type': 'max', 'dpout_model': 0.0, 'version': V}
+        self.infersent = InferSent(params_model)
+        self.infersent.load_state_dict(torch.load(MODEL_PATH))
+
+        W2V_PATH = 'dataset/GloVe/glove.840B.300d.txt' if V == 1 else 'dataset/fastText/crawl-300d-2M-subword.vec'
+        self.infersent.set_w2v_path(W2V_PATH)
+
+    def get_embedding(self, sentence: str) -> ndarray:
+        '''Return the embedding of the given sentence.'''
+        return self.get_embeddings([sentence])[0]
+
+    def get_embeddings(self, sentences: List[str]) -> ndarray:
+        '''Return the embeddings of the given sentences.'''
+        self.infersent.update_vocab(sentences)
+        return self.infersent.encode(sentences, tokenize=True)
+
+    def download_files(self):
+        # TODO: this fucntion should check presence of necessary files. Download them otherwise.
+        raise NotImplementedError

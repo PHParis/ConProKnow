@@ -1,2 +1,3 @@
 hdt
+numpy
 nltk
