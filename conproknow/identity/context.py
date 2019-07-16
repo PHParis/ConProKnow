@@ -99,3 +99,6 @@ class ContextWGoldStand(Context):
         self.scores = c.scores
         self.candidates = c.candidates
         self.gold_standard: Set[str] = gold_standard
+        self.precision: float = 0
+        self.recall: float = 0
+        self.f_measure: float = 0

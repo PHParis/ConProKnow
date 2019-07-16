@@ -3,13 +3,13 @@ from time import time
 
 
 def keep_alphanumeric_only(s: str) -> str:
-    """Return the same string but with only its alphanumeric caracters."""
+    '''Removes all non alphanumeric caracters from the given string.'''
     pattern = compile('[\W_]+')
     return pattern.sub('', s)
 
 
 def timing(f):
-    """Decorator that track time"""
+    '''Decorator that track time.'''
     def wrap(*args):
         time1 = time()
         ret = f(*args)
