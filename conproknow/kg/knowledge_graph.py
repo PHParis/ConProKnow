@@ -33,8 +33,8 @@ class KG(object):
     def nb_shared(self) -> int:
         raise NotImplementedError
 
-    def get_description(self, resource: str) -> Optional[str]:
-        """Get english description of the specified resource.
+    def get_schema_description(self, resource: str) -> Optional[str]:
+        '''Get english description of the specified resource.
         Use the http://schema.org/description property.
-        Trailing double quotes and @en are removed!"""
+        Trailing double quotes and @en are removed!'''
         raise NotImplementedError
