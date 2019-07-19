@@ -2,6 +2,13 @@
 
 ## Presentation
 
+As the number of open knowledge graphs (KGs) growths, the complexity for users to find their way with data increases.
+Thus, it is important to provide to users approaches that help them handling KGs while writing queries.
+Several works demonstrated the importance to consider identity links (_owl:sameAs_) between entities as context-dependant identity links.
+W.r.t. an identity context, some properties might be propagated and some don't.
+In this work, we propose an approach based on sentence embedding to find those propagable properties 
+for a given context.
+
 ## Preliminaries
  
  You must ensure the following requirements are met on your test machine: 
