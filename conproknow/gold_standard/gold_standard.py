@@ -1,8 +1,10 @@
 from json import load
-from typing import List, Tuple
+from typing import List, Tuple, Set
 from statistics import mean
+from math import floor
 from conproknow.identity.context import ContextWGoldStand, Context
 from conproknow.algo.lattice_builder import get_propagation_set
+from conproknow.kg.knowledge_graph import KG
 
 
 class gold_standard(object):
@@ -39,4 +41,47 @@ class gold_standard(object):
         self.recall: float = mean([e[1] for e in prf])
         self.f_measure: float = mean([e[2] for e in prf])
 
-    def compare
+    def compare_results(self, kg: KG):
+        '''Compute propagable set for the given indiscernible sets and then, print precison, recall and f-measure.'''
+        overall_precisions: List[float] = list()
+        overall_recalls: List[float] = list()
+        overall_f_measures: List[float] = list()
+        for gsc in self.contexts_by_class:
+            class_label = gsc.class_label
+            precisions: List[float] = list()
+            recalls: List[float] = list()
+            f_measures: List[float] = list()
+            for c in gsc.contexts:
+                seed: str = c.resource
+                indiscernibles: Set[str] = c.properties
+                similars: Set[str] = c.instances
+                selected_candidates = get_propagation_set(
+                    seed, indiscernibles, similars, kg)
+                gold_standard_selection: Set[str] = c.gold_standard
+                tp = gold_standard_selection.intersection(selected_candidates)
+                fp = selected_candidates.difference(tp)
+                fn = gold_standard_selection.difference(selected_candidates)
+                precision = len(tp) / (len(tp) + len(fp)
+                                       ) if len(tp) + len(fp) > 0 else 0
+                recall = len(tp) / (len(tp) + len(fn)
+                                    ) if len(tp) + len(fn) > 0 else 0
+                f_measure = 2 * precision * recall / \
+                    (precision + recall) if precision + recall > 0 else 0
+                precisions.append(precision)
+                recalls.append(recall)
+                f_measures.append(f_measure)
+            precision = mean(precisions)
+            recall = mean(recalls)
+            f_measure = mean(f_measures)
+            overall_precisions.append(precision)
+            overall_recalls.append(recall)
+            overall_f_measures.append(f_measure)
+            print(f"class {class_label}:")
+            print(f"\tprecision: {floor(precision * 10000) / 100}%")
+            print(f"\trecall: {floor(recall * 10000) / 100}%")
+            print(f"\tf-measure: {floor(f_measure * 10000) / 100}%")
+
+        print(f"Overall:")
+        print(f"\tprecision: {floor(mean(overall_precisions) * 10000) / 100}%")
+        print(f"\trecall: {floor(mean(overall_recalls) * 10000) / 100}%")
+        print(f"\tf-measure: {floor(mean(overall_f_measures) * 10000) / 100}%")
