@@ -1,10 +1,14 @@
 from os.path import join, isfile
-from typing import Set, Dict, Optional, List
+from typing import Set, Dict, Optional, List, Tuple, Iterable
 from json import load, dumps
-from conproknow.utils.helpers import keep_alphanumeric_only, timing
+from conproknow.utils.helpers import keep_alphanumeric_only, timing, cosine_similarity
 from conproknow.identity.lattice import Lattice
 from conproknow.utils.wikidata import get_wiki_id
 from conproknow.kg.hdt_knowledge_graph import KG
+from conproknow.sentence_embedding.infersent import infersent
+from statistics import mean
+
+threshold = 0.1
 
 
 @timing
@@ -78,3 +82,52 @@ def build_lattice(resource: str, kg: KG, output_dir: str, saving_partial_results
     if dump_path_context is not None:
         lattice.save_to_file(dump_path_context)
     return lattice
+
+
+def get_descriptions(entities: Iterable[str], kg: KG) -> List[Tuple[str, str]]:
+    ''' Return the list composed of entity/description couples.'''
+    results: List[Tuple[str, str]] = list()
+    # keep only properties with english description
+    for e in entities:
+        desc = kg.get_schema_description(e)
+        if desc is not None:
+            results.append((e, desc))
+    return results
+
+
+def get_propagation_set(seed: str, indiscernibles: Set[str], similars: Set[str], kg: KG) -> Set[str]:
+    '''Return the set of properties that are propagable given the parameters.'''
+    # get all properties that could be propagable
+    candidate_properties: Set[str] = {p for r in similars.union(
+        {seed}) for (_, p, _) in kg.triples(r, "", "")}
+    # removes indiscernible set because they are propagable by definition
+    candidate_properties.difference_update(indiscernibles)
+    # get couples of candidate property/description
+    candid_descs = get_descriptions(candidate_properties, kg)
+    if not candid_descs:
+        return set()
+    # get couples of indiscernible property/description
+    indi_descs = get_descriptions(indiscernibles, kg)
+    if not indi_descs:
+        return set()
+
+    infersent = infersent()
+    infersent.update_vocab({desc for (p, desc) in candid_descs}.union(
+        {desc for (p, desc) in indi_descs}))
+
+    # getting indiscernible set embeddings
+    indi_embeds = infersent.get_embeddings([desc for (p, desc) in indi_descs])
+
+    # getting candidate set embeddings
+    candid_embeds = infersent.get_embeddings(
+        [desc for (p, desc) in candid_descs])
+    results: Set[str] = set()
+    for i, candid_embed in enumerate(candid_embeds):
+        distances: List[float] = list()
+        for indi_embed in indi_embeds:
+            distance = 1 - cosine_similarity(candid_embed, indi_embed)
+            distances.append(distance)
+        mean_distance = mean(distances)
+        if mean_distance <= threshold:
+            results.add(candid_descs[i][0])
+    return results

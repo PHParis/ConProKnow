@@ -17,13 +17,17 @@ class infersent(encoder):
         W2V_PATH = 'dataset/GloVe/glove.840B.300d.txt' if V == 1 else 'dataset/fastText/crawl-300d-2M-subword.vec'
         self.infersent.set_w2v_path(W2V_PATH)
 
+    def update_vocab(self, sentences: List[str]):
+        self.infersent.update_vocab(sentences)
+
     def get_embedding(self, sentence: str) -> ndarray:
         '''Return the embedding of the given sentence.'''
         return self.get_embeddings([sentence])[0]
 
-    def get_embeddings(self, sentences: List[str]) -> ndarray:
+    def get_embeddings(self, sentences: List[str], update_vocab: bool = False) -> ndarray:
         '''Return the embeddings of the given sentences.'''
-        self.infersent.update_vocab(sentences)
+        if update_vocab:
+            self.infersent.update_vocab(sentences)
         return self.infersent.encode(sentences, tokenize=True)
 
     def download_files(self):

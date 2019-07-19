@@ -1,5 +1,6 @@
 from re import compile
 from time import time
+import numpy as np
 
 
 def keep_alphanumeric_only(s: str) -> str:
@@ -19,3 +20,8 @@ def timing(f):
 
         return ret
     return wrap
+
+
+def cosine_similarity(u: np.ndarray, v: np.ndarray) -> float:
+    """Where u and v are pytorch embeddings"""
+    return np.dot(u, v) / (np.linalg.norm(u) * np.linalg.norm(v)).item()
