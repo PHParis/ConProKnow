@@ -148,3 +148,4 @@ dmypy.json
 .mypy_cache
 *.py.*.py
 dataset/
+!gold_standard.json

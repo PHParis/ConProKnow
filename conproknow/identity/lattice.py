@@ -1,11 +1,11 @@
-from typing import Iterator, Set, Tuple
+from typing import Dict, Iterator, Set, Tuple
 from json import dumps, load
 from conproknow.identity.context import Context
 
 
 class Lattice(object):
     def __init__(self, resource: str):
-        self.dict = dict()
+        self.dict: Dict[str, Set[Context]] = dict()
         self.counter = 0
         self.resource = resource
 

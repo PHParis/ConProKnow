@@ -19,11 +19,13 @@ def usage():
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    group1 = parser.add_mutually_exclusive_group() #.add_mutually_exclusive_group(required=True)
+    # .add_mutually_exclusive_group(required=True)
+    group1 = parser.add_mutually_exclusive_group()
     group2 = group1.add_argument_group("lattice")
     group2.add_argument("resource")
     group2.add_argument("lattice")
-    group1.add_argument("--gold_standard", help="Valid gold standard file path.")    
+    group1.add_argument("--gold_standard",
+                        help="Valid gold standard file path.")
     # group2 = parser.add_argument_group() #.add_mutually_exclusive_group(required=True)
     # group2.add_argument("lattice2")
     # group2.add_argument("gold_standard2")
@@ -79,7 +81,7 @@ if __name__ == "__main__":
     lattice = build_lattice(
         "http://www.wikidata.org/entity/Q2343504", kg, None, False)
 
-    lattice = build_lattice(
-        "http://www.wikidata.org/entity/Q2343504", kg, None, False)
-    # print(f"{lattice}")
+    # lattice = build_lattice(
+    #     "http://www.wikidata.org/entity/Q2343504", kg, None, False)
+    # # print(f"{lattice}")
     print("end!")
