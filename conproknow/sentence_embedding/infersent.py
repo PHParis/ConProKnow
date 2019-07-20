@@ -2,7 +2,7 @@ from typing import List
 import torch
 from numpy import ndarray
 from conproknow.sentence_embedding.encoder import encoder
-from conproknow.sentence_embedding.infersent import InferSent
+from conproknow.sentence_embedding.models import InferSent
 
 
 class infersent(encoder):
