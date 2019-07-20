@@ -13,6 +13,7 @@ class Context:
         self.resource = resource
         self.scores: List[Tuple[str, float]] = list()
         self.candidates: Set[str] = set()
+        self.propagables: Set[str] = set()
 
     def __repr__(self):
         return str(self.__dict__)
@@ -53,7 +54,8 @@ class Context:
             "parent_ids": list(parent_ids),
             "resource": self.resource,
             "scores": [list(t) for t in self.scores],
-            "candidates": list(self.candidates)
+            "candidates": list(self.candidates),
+            "propagables": list(self.propagables),
         }
 
     @staticmethod
@@ -78,6 +80,10 @@ class Context:
                 c.candidates = {t for t in data["candidates"]}
             else:
                 c.candidates = set()
+            if "propagables" in data:
+                c.propagables = {t for t in data["propagables"]}
+            else:
+                c.propagables = set()
             return c
         #     for lvl in data:
         #         lattice.dict[lvl] = set()
@@ -98,6 +104,7 @@ class ContextWGoldStand(Context):
                                                 c.id, c.parent_ids, c.properties, c.instances)
         self.scores = c.scores
         self.candidates = c.candidates
+        self.propagables = c.propagables
         self.gold_standard: Set[str] = gold_standard
         self.precision: float = 0
         self.recall: float = 0

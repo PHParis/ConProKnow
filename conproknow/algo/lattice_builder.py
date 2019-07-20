@@ -74,6 +74,8 @@ def build_lattice(resource: str, kg: KG, output_dir: str, saving_partial_results
                 intersection.intersection_update(set(result[p][o]))
         if bool(intersection):
             context = lattice.build_context(set(), {p}, intersection)
+            context.propagables = get_propagation_set(
+                context.resource, context.properties, context.instances, kg)
             lattice.add(context, 1)
 
     if output:

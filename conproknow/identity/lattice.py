@@ -101,6 +101,8 @@ class Lattice(object):
                     if bool(intersection):
                         context = self.build_context(
                             {c_1.id, c_2.id}, props_union, intersection)
+                        context.propagables = c_1.propagables.intersection(
+                            c_2.propagables)
                         self.add(context, level)
         if self.get_max_lvl() == level:
             return self.build_lattice(level + 1)
