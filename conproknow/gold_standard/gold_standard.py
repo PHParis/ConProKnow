@@ -33,6 +33,9 @@ class gold_standard(object):
                                                set(c["parent_ids"]), set(c["properties"]), set(c["instances"]))
                     cgs: ContextWGoldStand = ContextWGoldStand(
                         context, set(c["gold_standard"]))
+                    cgs.precision = float(c["p"])
+                    cgs.recall = float(c["r"])
+                    cgs.f_measure = float(c["f1"])
                     contexts.append(cgs)
                 gsc: gold_standard_class = gold_standard_class(
                     class_label, precision, recall, f_measure, contexts)

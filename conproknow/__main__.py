@@ -8,16 +8,6 @@ from conproknow.kg.hdt_knowledge_graph import HDT
 from conproknow.algo.lattice_builder import build_lattice
 from conproknow.gold_standard.gold_standard import gold_standard
 
-
-def usage():
-    """Print help for users."""
-    print("Type -h or --help to display this message.")
-    print("Type -o or --output to specify the output directory. Default is /data2/hamdif/doctorants/ph/xp/")
-    print("Type -r or --resource to specify the resource from which the identity context will be computed. Default is http://dbpedia.org/resource/France")
-    print("Type -f or --file to specify the HDT file to process. Default is /data2/hamdif/doctorants/ph/linkeddatasets/hdt/lod-a-lot/LOD_a_lot_v1.hdt")
-    print("Type -gs or --gold_standard to test the gold standard. Default is /data2/hamdif/doctorants/ph/linkeddatasets/hdt/lod-a-lot/LOD_a_lot_v1.hdt")
-
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers(dest='command')
@@ -53,3 +43,29 @@ if __name__ == "__main__":
         gs = gold_standard(args.path)
         gs.compare_results(kg)
     print("end!")
+
+# V=2
+# class comics character:
+#     precision: 68.16%
+#     recall: 83.33%
+#     f-measure: 71.48%
+# class country:
+#     precision: 69.66%
+#     recall: 85.83%
+#     f-measure: 70.77%
+# class film :
+#     precision: 76.08%
+#     recall: 76.08%
+#     f-measure: 73.33%
+# class literary work:
+#     precision: 62.93%
+#     recall: 77.73%
+#     f-measure: 68.22%
+# class political party:
+#         precision: 61.66%
+#         recall: 86.66%
+#         f-measure: 66.83%
+# Overall:
+#         precision: 67.7%
+#         recall: 81.93%
+#         f-measure: 70.12%

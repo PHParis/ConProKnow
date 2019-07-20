@@ -5,7 +5,7 @@ from conproknow.utils.helpers import keep_alphanumeric_only, timing, cosine_simi
 from conproknow.identity.lattice import Lattice
 from conproknow.utils.wikidata import get_wiki_id
 from conproknow.kg.hdt_knowledge_graph import KG
-from conproknow.sentence_embedding.infersent import infersent
+from conproknow.sentence_embedding.infersent import InfersentEncoder
 from statistics import mean
 
 threshold = 0.1
@@ -95,31 +95,48 @@ def get_descriptions(entities: Iterable[str], kg: KG) -> List[Tuple[str, str]]:
     return results
 
 
+wdt = "http://www.wikidata.org/prop/direct/"
+wd = "http://www.wikidata.org/entity/"
+
+props_to_ignore: Set[str] = {"P31",
+                             "P361",
+                             "P279",
+                             "P1647",
+                             "P2302",
+                             "P1545",
+                             "P973",
+                             "P1659"}
+
+
 def get_propagation_set(seed: str, indiscernibles: Set[str], similars: Set[str], kg: KG) -> Set[str]:
     '''Return the set of properties that are propagable given the parameters.'''
     # get all properties that could be propagable
     candidate_properties: Set[str] = {p for r in similars.union(
         {seed}) for (_, p, _) in kg.triples(r, "", "")}
+    candidate_properties = {get_wiki_id(
+        p) for p in candidate_properties if "wikidata" in p}.difference(props_to_ignore)
     # removes indiscernible set because they are propagable by definition
     candidate_properties.difference_update(indiscernibles)
     # get couples of candidate property/description
-    candid_descs = get_descriptions(candidate_properties, kg)
+    candid_descs = get_descriptions(
+        [wd + p for p in candidate_properties], kg)
     if not candid_descs:
         return set()
     # get couples of indiscernible property/description
-    indi_descs = get_descriptions(indiscernibles, kg)
+    indi_descs = get_descriptions([wd + p for p in indiscernibles], kg)
     if not indi_descs:
         return set()
-
-    infersent = infersent()
-    infersent.update_vocab({desc for (p, desc) in candid_descs}.union(
-        {desc for (p, desc) in indi_descs}))
+    vocab = {desc for (p, desc) in candid_descs}.union(
+        {desc for (p, desc) in indi_descs})
+    encoder = InfersentEncoder(vocab)
+    # encoder.update_vocab({desc for (p, desc) in candid_descs}.union(
+    #     {desc for (p, desc) in indi_descs}))
 
     # getting indiscernible set embeddings
-    indi_embeds = infersent.get_embeddings([desc for (p, desc) in indi_descs])
+    indi_embeds = encoder.get_embeddings([desc for (p, desc) in indi_descs])
 
     # getting candidate set embeddings
-    candid_embeds = infersent.get_embeddings(
+    candid_embeds = encoder.get_embeddings(
         [desc for (p, desc) in candid_descs])
     results: Set[str] = set()
     for i, candid_embed in enumerate(candid_embeds):
@@ -130,4 +147,4 @@ def get_propagation_set(seed: str, indiscernibles: Set[str], similars: Set[str],
         mean_distance = mean(distances)
         if mean_distance <= threshold:
             results.add(candid_descs[i][0])
-    return results
+    return {get_wiki_id(p) for p in results}

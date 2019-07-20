@@ -54,8 +54,8 @@ To create an identity lattice:
  ```bash
  python3 -m conproknow lattice --resource "http://www.wikidata.org/entity/Q90" --output /output_dir/  --hdt /path/to/wikidata2018_09_11.hdt
  ```
-
+<!-- 
  To check the gold standard results:
  ```bash
  python3 -m conproknow gold --hdt /path/to/wikidata2018_09_11.hdt
- ```
+ ``` -->

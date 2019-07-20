@@ -2,7 +2,7 @@ from typing import List
 from numpy import ndarray
 
 
-class encoder(object):
+class Encoder(object):
     '''Abstract class for sentence embedding encoder. This class allows to get
     representational vectors of sentences.'''
 

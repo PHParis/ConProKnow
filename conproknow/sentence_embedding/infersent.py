@@ -1,12 +1,12 @@
 from typing import List
 import torch
 from numpy import ndarray
-from conproknow.sentence_embedding.encoder import encoder
+from conproknow.sentence_embedding.encoder import Encoder
 from conproknow.sentence_embedding.models import InferSent
 
 
-class infersent(encoder):
-    def __ini__(self):
+class InfersentEncoder(Encoder):
+    def __init__(self, vocab: List[str]):
         V = 2
         MODEL_PATH = 'dataset/infersent%s.pkl' % V
         params_model = {'bsize': 64, 'word_emb_dim': 300, 'enc_lstm_dim': 2048,
@@ -16,6 +16,7 @@ class infersent(encoder):
 
         W2V_PATH = 'dataset/GloVe/glove.840B.300d.txt' if V == 1 else 'dataset/fastText/crawl-300d-2M-subword.vec'
         self.infersent.set_w2v_path(W2V_PATH)
+        self.infersent.build_vocab(vocab)
 
     def update_vocab(self, sentences: List[str]):
         self.infersent.update_vocab(sentences)
