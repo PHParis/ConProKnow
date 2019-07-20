@@ -21,9 +21,11 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     # .add_mutually_exclusive_group(required=True)
     group1 = parser.add_mutually_exclusive_group()
-    group2 = group1.add_argument_group("lattice")
-    group2.add_argument("resource")
-    group2.add_argument("lattice")
+    group2 = group1.add_argument_group(
+        "--resource", help="The seed of the lattice.")
+    group2.add_argument(
+        "--output", help="Directory where the lattice will be saved as a JSON file.")
+    group2.add_argument("--hdt", help="HDT file path.")
     group1.add_argument("--gold_standard",
                         help="Valid gold standard file path.")
     # group2 = parser.add_argument_group() #.add_mutually_exclusive_group(required=True)

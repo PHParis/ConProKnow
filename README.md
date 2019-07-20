@@ -9,6 +9,8 @@ W.r.t. an identity context, some properties might be propagated and some don't.
 In this work, we propose an approach based on sentence embedding to find those propagable properties 
 for a given context.
 
+Currently, only Wikipedia is supported due to specifities of its data model.
+
 ## Preliminaries
  
  You must ensure the following requirements are met on your test machine: 
@@ -48,3 +50,13 @@ and
  ```
 
  ## How to run the program?
+
+To create an identity lattice:
+ ```python
+ python -m conproknow.py lattice
+ ```
+
+ To check the gold standard results:
+ ```python
+ python -m conproknow.py lattice
+ ```
