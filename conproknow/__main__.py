@@ -30,7 +30,7 @@ if __name__ == "__main__":
 
     parser_gold = subparsers.add_parser("gold")
     parser_gold.add_argument("--path",
-                             help="Valid gold standard file path.", required=True)
+                             help="Valid gold standard file path.", default="gold_standard/gold_standard.json")
     parser_gold.add_argument("--hdt", help="HDT file path.", required=True)
     args = parser.parse_args()
 
