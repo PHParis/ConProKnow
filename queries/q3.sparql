@@ -1,0 +1,6 @@
+SELECT DISTINCT ?item ?itemLabel ?crimeLabel
+WHERE
+{
+  ?item wdt:P1399 ?crime; wdt:P102 wd:Q20012759 .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }
+}

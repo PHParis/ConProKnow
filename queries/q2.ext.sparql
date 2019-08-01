@@ -1,0 +1,11 @@
+SELECT DISTINCT ?item ?itemLabel ?countryLabel ?positionLabel
+WHERE 
+{
+  VALUES (?country) {(wd:Q142) (wd:Q69808) (wd:Q69829) (wd:Q70802) (wd:Q58202) (wd:Q58326) (wd:Q133132) (wd:Q71092) (wd:Q71084) (wd:Q70972)}
+  {?country (p:P35/ps:P35) ?item.}
+  UNION
+  {?item wdt:P39 ?position.
+  ?position wdt:P17 ?country ;
+            (wdt:P279)+ wd:Q48352 .}
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }
+}

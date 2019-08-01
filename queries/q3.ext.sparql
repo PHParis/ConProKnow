@@ -1,0 +1,7 @@
+SELECT DISTINCT ?item ?itemLabel ?crimeLabel
+WHERE
+{
+  VALUES (?party) {(wd:Q7223378) (wd:Q1904825) (wd:Q1052584) (wd:Q173152) (wd:Q20012759)}
+  ?item wdt:P1399 ?crime; wdt:P102 ?party .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }
+}

@@ -1,0 +1,6 @@
+SELECT DISTINCT ?clinicalTrial ?clinicalTrialLabel
+WHERE
+{
+  ?clinicalTrial wdt:P4844 wd:Q57055 .
+      SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }
+}
