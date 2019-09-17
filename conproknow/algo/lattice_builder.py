@@ -6,13 +6,16 @@ from conproknow.identity.lattice import Lattice
 from conproknow.utils.wikidata import get_wiki_id
 from conproknow.kg.hdt_knowledge_graph import KG
 from conproknow.sentence_embedding.infersent import InfersentEncoder
+from conproknow.sentence_embedding.gensen_encoder import GenSenEncoder
+from conproknow.sentence_embedding.universal_sentence_encoder import UniversalSentenceEncoder
+from conproknow.sentence_embedding.encoder import Encoder
 from statistics import mean
 
 threshold = 0.1
 
 
 @timing
-def build_lattice(resource: str, kg: KG, output_dir: str, saving_partial_results: bool, props_to_ignore: Set[str] = None, subjects_to_filter: Set[str] = None, desc_by_props: Dict[str, str] = None, output: bool = False) -> Optional[Lattice]:
+def build_lattice(encoder_type: type, resource: str, kg: KG, output_dir: str, saving_partial_results: bool, props_to_ignore: Set[str] = None, subjects_to_filter: Set[str] = None, desc_by_props: Dict[str, str] = None, output: bool = False) -> Optional[Lattice]:
     dump_path_context = join(
         output_dir, f"identity_context_{keep_alphanumeric_only(resource)}.json") if output_dir is not None else None
     if dump_path_context is not None and isfile(dump_path_context):
@@ -75,7 +78,7 @@ def build_lattice(resource: str, kg: KG, output_dir: str, saving_partial_results
         if bool(intersection):
             context = lattice.build_context(set(), {p}, intersection)
             context.propagables = get_propagation_set(
-                context.resource, context.properties, context.instances, kg)
+                context.resource, context.properties, context.instances, kg, encoder_type)
             lattice.add(context, 1)
 
     if output:
@@ -110,7 +113,7 @@ props_to_ignore: Set[str] = {"P31",
                              "P1659"}
 
 
-def get_propagation_set(seed: str, indiscernibles: Set[str], similars: Set[str], kg: KG) -> Set[str]:
+def get_propagation_set(seed: str, indiscernibles: Set[str], similars: Set[str], kg: KG, encoder_type: type) -> Set[str]:
     '''Return the set of properties that are propagable given the parameters.'''
     # get all properties that could be propagable
     candidate_properties: Set[str] = {p for r in similars.union(
@@ -130,7 +133,16 @@ def get_propagation_set(seed: str, indiscernibles: Set[str], similars: Set[str],
         return set()
     vocab = {desc for (p, desc) in candid_descs}.union(
         {desc for (p, desc) in indi_descs})
-    encoder = InfersentEncoder(vocab)
+    # encoder: Encoder = None
+    # if encoder_type == "InferSent":
+    #     encoder = InfersentEncoder(vocab)
+    # elif encoder_type == "GenSen":
+    #     encoder = GenSenEncoder(vocab)
+    # elif encoder_type == "UniversalSentence":
+    #     encoder = UniversalSentenceEncoder(vocab)
+    if encoder_type is None:
+        raise Exception("Encoder not specified!")
+    encoder: Encoder = encoder_type()
     # encoder.update_vocab({desc for (p, desc) in candid_descs}.union(
     #     {desc for (p, desc) in indi_descs}))
 

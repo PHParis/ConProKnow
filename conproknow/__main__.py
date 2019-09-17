@@ -1,3 +1,4 @@
+from typing import Tuple
 import argparse
 from getopt import getopt, GetoptError
 from sys import argv, exit
@@ -7,6 +8,9 @@ from conproknow.kg.knowledge_graph import KG
 from conproknow.kg.hdt_knowledge_graph import HDT
 from conproknow.algo.lattice_builder import build_lattice
 from conproknow.gold_standard.gold_standard import gold_standard
+from conproknow.sentence_embedding.gensen import GenSenEncoder
+from conproknow.sentence_embedding.infersent import InfersentEncoder
+from conproknow.sentence_embedding.universal_sentence_encoder import UniversalSentenceEncoder
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -34,14 +38,17 @@ if __name__ == "__main__":
     # resource = "http://dbpedia.org/resource/France"
     # output_dir = "/data2/hamdif/doctorants/ph/xp/"
     # gold_standard_path = "gold_standard/gold_standard.json"
-
+    encoders: Tuple[type, type, type] = (UniversalSentenceEncoder,
+                                         InfersentEncoder, GenSenEncoder)
     kg: KG = HDT(args.hdt)
-    if args.command == "lattice":
-        lattice = build_lattice(
-            args.resource, kg, args.output, False)
-    else:
-        gs = gold_standard(args.path)
-        gs.compare_results(kg)
+    for encoder in encoders:
+        print(f"Using encoder: {encoder}")
+        if args.command == "lattice":
+            lattice = build_lattice(encoder,
+                                    args.resource, kg, args.output, False)
+        else:
+            gs = gold_standard(args.path)
+            gs.compare_results(kg, encoder)
     print("end!")
 
 # V=2

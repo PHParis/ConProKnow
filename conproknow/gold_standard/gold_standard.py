@@ -46,7 +46,7 @@ class gold_standard(object):
         self.recall: float = mean([e[1] for e in prf])
         self.f_measure: float = mean([e[2] for e in prf])
 
-    def compare_results(self, kg: KG):
+    def compare_results(self, kg: KG, encoder_type: type):
         '''Compute propagable set for the given indiscernible sets and then, print precison, recall and f-measure.'''
         overall_precisions: List[float] = list()
         overall_recalls: List[float] = list()
@@ -61,7 +61,7 @@ class gold_standard(object):
                 indiscernibles: Set[str] = c.properties
                 similars: Set[str] = c.instances
                 selected_candidates = get_propagation_set(
-                    seed, indiscernibles, similars, kg)
+                    seed, indiscernibles, similars, kg, encoder_type)
                 gold_standard_selection: Set[str] = c.gold_standard
                 tp = gold_standard_selection.intersection(selected_candidates)
                 fp = selected_candidates.difference(tp)
