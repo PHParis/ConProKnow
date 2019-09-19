@@ -1,8 +1,10 @@
-from typing import Tuple
+from typing import Dict, List
 import argparse
 from getopt import getopt, GetoptError
 from sys import argv, exit
 from os.path import isfile
+from numpy import arange
+from json import dump
 from conproknow.identity.lattice import Lattice
 from conproknow.kg.knowledge_graph import KG
 from conproknow.kg.hdt_knowledge_graph import HDT
@@ -11,6 +13,7 @@ from conproknow.gold_standard.gold_standard import gold_standard
 from conproknow.sentence_embedding.gensen_encoder import GenSenEncoder
 from conproknow.sentence_embedding.infersent import InfersentEncoder
 from conproknow.sentence_embedding.universal_sentence_encoder import UniversalSentenceEncoder
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -38,22 +41,34 @@ if __name__ == "__main__":
     # resource = "http://dbpedia.org/resource/France"
     # output_dir = "/data2/hamdif/doctorants/ph/xp/"
     # gold_standard_path = "gold_standard/gold_standard.json"
-    encoders: Tuple[type, type, type] = (
+    encoders = [
+        None,
         GenSenEncoder,
         UniversalSentenceEncoder,
         InfersentEncoder,
-    )
+    ]
     print(f"Opening HDT file: {args.hdt}")
     kg: KG = HDT(args.hdt)
     print(f"Mode: {args.command}")
-    for encoder in encoders:
-        print(f"Using encoder: {encoder}")
-        if args.command == "lattice":
-            lattice = build_lattice(encoder,
-                                    args.resource, kg, args.output, False)
-        else:
-            gs = gold_standard(args.path)
-            gs.compare_results(kg, encoder)
+
+    if args.command == "lattice":
+        threshold = 0.1
+        encoder = InfersentEncoder
+        lattice = build_lattice(threshold, encoder,
+                                args.resource, kg, args.output, False)
+    else:
+        results: Dict[str, Dict[float, Dict[str, List[float]]]] = dict()
+        for encoder in encoders:
+            results[str(encoder)] = dict()
+            print(f"Using encoder: {encoder}")
+            for threshold in arange(0.05, 1.0, 0.05):
+                print(f"threshold: {threshold}")
+                gs = gold_standard(args.path)
+                partial_results = gs.compare_results(kg, encoder, threshold)
+                results[str(encoder)][threshold] = partial_results
+                print(f"Saving results in results.json...")
+                with open("results.json", mode="w", encoding="utf-8") as f:
+                    dump(results, f, sort_keys=True, indent=4)
     print("end!")
 
 # V=2

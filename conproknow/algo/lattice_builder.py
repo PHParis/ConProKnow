@@ -1,18 +1,17 @@
 from os.path import join, isfile
 from typing import Set, Dict, Optional, List, Tuple, Iterable
 from json import load, dumps
+from statistics import mean
 from conproknow.utils.helpers import keep_alphanumeric_only, timing, cosine_similarity
 from conproknow.identity.lattice import Lattice
 from conproknow.utils.wikidata import get_wiki_id
 from conproknow.kg.hdt_knowledge_graph import KG
 from conproknow.sentence_embedding.encoder import Encoder
-from statistics import mean
-
-threshold = 0.1
+from conproknow.sentence_embedding.baseline import Baseline
 
 
 @timing
-def build_lattice(encoder_type: type, resource: str, kg: KG, output_dir: str, saving_partial_results: bool, props_to_ignore: Set[str] = None, subjects_to_filter: Set[str] = None, desc_by_props: Dict[str, str] = None, output: bool = False) -> Optional[Lattice]:
+def build_lattice(threshold: float, encoder_type: type, resource: str, kg: KG, output_dir: str, saving_partial_results: bool, props_to_ignore: Set[str] = None, subjects_to_filter: Set[str] = None, desc_by_props: Dict[str, str] = None, output: bool = False) -> Optional[Lattice]:
     dump_path_context = join(
         output_dir, f"identity_context_{keep_alphanumeric_only(resource)}.json") if output_dir is not None else None
     if dump_path_context is not None and isfile(dump_path_context):
@@ -75,7 +74,7 @@ def build_lattice(encoder_type: type, resource: str, kg: KG, output_dir: str, sa
         if bool(intersection):
             context = lattice.build_context(set(), {p}, intersection)
             context.propagables = get_propagation_set(
-                context.resource, context.properties, context.instances, kg, encoder_type)
+                context.resource, context.properties, context.instances, kg, encoder_type, threshold)
             lattice.add(context, 1)
 
     if output:
@@ -110,7 +109,7 @@ props_to_ignore: Set[str] = {"P31",
                              "P1659"}
 
 
-def get_propagation_set(seed: str, indiscernibles: Set[str], similars: Set[str], kg: KG, encoder_type: type) -> Set[str]:
+def get_propagation_set(seed: str, indiscernibles: Set[str], similars: Set[str], kg: KG, encoder_type: type, threshold: float) -> Set[str]:
     '''Return the set of properties that are propagable given the parameters.'''
     # get all properties that could be propagable
     candidate_properties: Set[str] = {p for r in similars.union(
@@ -130,25 +129,36 @@ def get_propagation_set(seed: str, indiscernibles: Set[str], similars: Set[str],
         return set()
     vocab = {desc for (p, desc) in candid_descs}.union(
         {desc for (p, desc) in indi_descs})
-    if encoder_type is None:
-        raise Exception("Encoder not specified!")
-    encoder: Encoder = encoder_type(vocab)
-    # encoder.update_vocab({desc for (p, desc) in candid_descs}.union(
-    #     {desc for (p, desc) in indi_descs}))
-
-    # getting indiscernible set embeddings
-    indi_embeds = encoder.get_embeddings([desc for (p, desc) in indi_descs])
-
-    # getting candidate set embeddings
-    candid_embeds = encoder.get_embeddings(
-        [desc for (p, desc) in candid_descs])
     results: Set[str] = set()
-    for i, candid_embed in enumerate(candid_embeds):
-        distances: List[float] = list()
-        for indi_embed in indi_embeds:
-            distance = 1 - cosine_similarity(candid_embed, indi_embed)
-            distances.append(distance)
-        mean_distance = mean(distances)
-        if mean_distance <= threshold:
-            results.add(candid_descs[i][0])
+    if encoder_type is None:
+        # we use the baseline
+        baseline = Baseline()
+        for (p, desc1) in candid_descs:
+            similarities = list()
+            for (_, desc2) in indi_descs:
+                similarity = baseline.similarity(desc1, desc2)
+                similarities.append(similarity)
+            mean_similarity = mean(similarities)
+            if mean_similarity >= threshold:
+                results.add(p)
+    else:
+        encoder: Encoder = encoder_type(vocab)
+        # encoder.update_vocab({desc for (p, desc) in candid_descs}.union(
+        #     {desc for (p, desc) in indi_descs}))
+
+        # getting indiscernible set embeddings
+        indi_embeds = encoder.get_embeddings(
+            [desc for (p, desc) in indi_descs])
+
+        # getting candidate set embeddings
+        candid_embeds = encoder.get_embeddings(
+            [desc for (p, desc) in candid_descs])
+        for i, candid_embed in enumerate(candid_embeds):
+            similarities = list()
+            for indi_embed in indi_embeds:
+                similarity = cosine_similarity(candid_embed, indi_embed)
+                similarities.append(similarity)
+            mean_similarity = mean(similarities)
+            if mean_similarity >= threshold:
+                results.add(candid_descs[i][0])
     return {get_wiki_id(p) for p in results}
