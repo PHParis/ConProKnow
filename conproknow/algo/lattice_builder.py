@@ -2,12 +2,14 @@ from os.path import join, isfile
 from typing import Set, Dict, Optional, List, Tuple, Iterable
 from json import load, dumps
 from statistics import mean
+from numpy import ndarray, concatenate
 from conproknow.utils.helpers import keep_alphanumeric_only, timing, cosine_similarity
 from conproknow.identity.lattice import Lattice
 from conproknow.utils.wikidata import get_wiki_id
 from conproknow.kg.hdt_knowledge_graph import KG
 from conproknow.sentence_embedding.encoder import Encoder
 from conproknow.sentence_embedding.baseline import Baseline
+from conproknow.algo.containers import Containers
 
 
 @timing
@@ -90,7 +92,11 @@ def get_descriptions(entities: Iterable[str], kg: KG) -> List[Tuple[str, str]]:
     results: List[Tuple[str, str]] = list()
     # keep only properties with english description
     for e in entities:
-        desc = kg.get_schema_description(e)
+        if e in Containers.prop_desc:
+            desc = Containers.prop_desc[e]
+        else:
+            desc = kg.get_schema_description(e)
+            Containers.prop_desc[e] = desc
         if desc is not None:
             results.append((e, desc))
     return results
@@ -107,6 +113,25 @@ props_to_ignore: Set[str] = {"P31",
                              "P1545",
                              "P973",
                              "P1659"}
+
+
+def get_embeddings(encoder: Encoder, sentences: List[str]) -> List[ndarray]:
+    to_compute: List[str] = list()
+    results: List[ndarray] = list()
+    for s in sentences:
+        if s in Containers.encoder_desc_ndarray:
+            results.append(Containers.encoder_desc_ndarray[s])
+        else:
+            to_compute.append(s)
+    if to_compute:
+        # computation needed!!!
+        embeddings = encoder.get_embeddings(to_compute)
+        for i, embed in enumerate(embeddings):
+            Containers.encoder_desc_ndarray[to_compute[i]] = embed
+        results.clear()
+        for s in sentences:
+            results.append(Containers.encoder_desc_ndarray[s])
+    return results
 
 
 def get_propagation_set(seed: str, indiscernibles: Set[str], similars: Set[str], kg: KG, encoder_type: type, threshold: float) -> Set[str]:
@@ -147,12 +172,12 @@ def get_propagation_set(seed: str, indiscernibles: Set[str], similars: Set[str],
         #     {desc for (p, desc) in indi_descs}))
 
         # getting indiscernible set embeddings
-        indi_embeds = encoder.get_embeddings(
-            [desc for (p, desc) in indi_descs])
+        indi_embeds = get_embeddings(encoder,
+                                     [desc for (p, desc) in indi_descs])
 
         # getting candidate set embeddings
-        candid_embeds = encoder.get_embeddings(
-            [desc for (p, desc) in candid_descs])
+        candid_embeds = get_embeddings(encoder,
+                                       [desc for (p, desc) in candid_descs])
         for i, candid_embed in enumerate(candid_embeds):
             similarities = list()
             for indi_embed in indi_embeds:

@@ -13,6 +13,7 @@ from conproknow.gold_standard.gold_standard import gold_standard
 from conproknow.sentence_embedding.gensen_encoder import GenSenEncoder
 from conproknow.sentence_embedding.infersent import InfersentEncoder
 from conproknow.sentence_embedding.universal_sentence_encoder import UniversalSentenceEncoder
+from conproknow.algo.containers import Containers
 
 
 if __name__ == "__main__":
@@ -44,8 +45,8 @@ if __name__ == "__main__":
     encoders = [
         None,
         GenSenEncoder,
-        UniversalSentenceEncoder,
         InfersentEncoder,
+        UniversalSentenceEncoder,
     ]
     print(f"Opening HDT file: {args.hdt}")
     kg: KG = HDT(args.hdt)
@@ -59,6 +60,7 @@ if __name__ == "__main__":
     else:
         results: Dict[str, Dict[float, Dict[str, List[float]]]] = dict()
         for encoder in encoders:
+            Containers.encoder_desc_ndarray.clear()
             results[str(encoder)] = dict()
             print(f"Using encoder: {encoder}")
             for threshold in arange(0.05, 1.0, 0.05):

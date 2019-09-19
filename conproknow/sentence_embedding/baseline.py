@@ -2,6 +2,8 @@ from similarity.normalized_levenshtein import NormalizedLevenshtein
 
 
 class Baseline(object):
+    """Normalized Levenshtein https://pypi.org/project/strsim/#normalized-levenshtein"""
+
     def __init__(self):
         self.matcher = NormalizedLevenshtein()
 
