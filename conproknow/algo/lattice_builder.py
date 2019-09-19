@@ -5,9 +5,6 @@ from conproknow.utils.helpers import keep_alphanumeric_only, timing, cosine_simi
 from conproknow.identity.lattice import Lattice
 from conproknow.utils.wikidata import get_wiki_id
 from conproknow.kg.hdt_knowledge_graph import KG
-from conproknow.sentence_embedding.infersent import InfersentEncoder
-from conproknow.sentence_embedding.gensen_encoder import GenSenEncoder
-from conproknow.sentence_embedding.universal_sentence_encoder import UniversalSentenceEncoder
 from conproknow.sentence_embedding.encoder import Encoder
 from statistics import mean
 
@@ -133,16 +130,9 @@ def get_propagation_set(seed: str, indiscernibles: Set[str], similars: Set[str],
         return set()
     vocab = {desc for (p, desc) in candid_descs}.union(
         {desc for (p, desc) in indi_descs})
-    # encoder: Encoder = None
-    # if encoder_type == "InferSent":
-    #     encoder = InfersentEncoder(vocab)
-    # elif encoder_type == "GenSen":
-    #     encoder = GenSenEncoder(vocab)
-    # elif encoder_type == "UniversalSentence":
-    #     encoder = UniversalSentenceEncoder(vocab)
     if encoder_type is None:
         raise Exception("Encoder not specified!")
-    encoder: Encoder = encoder_type()
+    encoder: Encoder = encoder_type(vocab)
     # encoder.update_vocab({desc for (p, desc) in candid_descs}.union(
     #     {desc for (p, desc) in indi_descs}))
 

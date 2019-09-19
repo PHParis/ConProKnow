@@ -8,7 +8,7 @@ from conproknow.kg.knowledge_graph import KG
 from conproknow.kg.hdt_knowledge_graph import HDT
 from conproknow.algo.lattice_builder import build_lattice
 from conproknow.gold_standard.gold_standard import gold_standard
-from conproknow.sentence_embedding.gensen import GenSenEncoder
+from conproknow.sentence_embedding.gensen_encoder import GenSenEncoder
 from conproknow.sentence_embedding.infersent import InfersentEncoder
 from conproknow.sentence_embedding.universal_sentence_encoder import UniversalSentenceEncoder
 
@@ -38,9 +38,14 @@ if __name__ == "__main__":
     # resource = "http://dbpedia.org/resource/France"
     # output_dir = "/data2/hamdif/doctorants/ph/xp/"
     # gold_standard_path = "gold_standard/gold_standard.json"
-    encoders: Tuple[type, type, type] = (UniversalSentenceEncoder,
-                                         InfersentEncoder, GenSenEncoder)
+    encoders: Tuple[type, type, type] = (
+        GenSenEncoder,
+        UniversalSentenceEncoder,
+        InfersentEncoder,
+    )
+    print(f"Opening HDT file: {args.hdt}")
     kg: KG = HDT(args.hdt)
+    print(f"Mode: {args.command}")
     for encoder in encoders:
         print(f"Using encoder: {encoder}")
         if args.command == "lattice":

@@ -7,10 +7,10 @@ from conproknow.sentence_embedding.gensen import GenSen, GenSenSingle
 
 class GenSenEncoder(Encoder):
     def __init__(self, vocab: List[str]):
-        self.gensen_1 = GenSenSingle(
-            model_folder='./data/models',
-            filename_prefix='nli_large_bothskip',
-            pretrained_emb='./data/embedding/glove.840B.300d.h5'
+        self.gensen = GenSenSingle(
+            model_folder='dataset/gensen/models',
+            filename_prefix='nli_large_bothskip_parse',
+            pretrained_emb='dataset/gensen/embedding/glove.840B.300d.h5'
         )
 
     def update_vocab(self, sentences: List[str]):
@@ -19,15 +19,18 @@ class GenSenEncoder(Encoder):
 
     def get_embedding(self, sentence: str) -> ndarray:
         '''Return the embedding of the given sentence.'''
-        raise NotImplementedError
+        _, reps_h_t = self.gensen.get_representation(
+            [sentence], pool='last', return_numpy=True
+        )
+        return reps_h_t[0]
         # return self.get_embeddings([sentence])[0]
 
     def get_embeddings(self, sentences: List[str], update_vocab: bool = False) -> ndarray:
         '''Return the embeddings of the given sentences.'''
-        reps_h, reps_h_t = self.gensen_1.get_representation(
-            sentences, pool='last', return_numpy=True, tokenize=True
+        _, reps_h_t = self.gensen.get_representation(
+            sentences, pool='last', return_numpy=True
         )
-        raise NotImplementedError
+        return reps_h_t
         # if update_vocab:
         #     self.infersent.update_vocab(sentences)
         # return self.infersent.encode(sentences, tokenize=True)
