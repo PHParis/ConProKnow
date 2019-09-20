@@ -149,3 +149,4 @@ dmypy.json
 *.py.*.py
 dataset/
 !gold_standard.json
+*.csv

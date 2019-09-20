@@ -5,6 +5,7 @@ from sys import argv, exit
 from os.path import isfile
 from numpy import arange
 from json import dump
+from datetime import datetime
 from conproknow.identity.lattice import Lattice
 from conproknow.kg.knowledge_graph import KG
 from conproknow.kg.hdt_knowledge_graph import HDT
@@ -43,9 +44,9 @@ if __name__ == "__main__":
     # output_dir = "/data2/hamdif/doctorants/ph/xp/"
     # gold_standard_path = "gold_standard/gold_standard.json"
     encoders = [
-        None,
-        GenSenEncoder,
-        InfersentEncoder,
+        # None,
+        # GenSenEncoder,
+        # InfersentEncoder,
         UniversalSentenceEncoder,
     ]
     print(f"Opening HDT file: {args.hdt}")
@@ -62,9 +63,9 @@ if __name__ == "__main__":
         for encoder in encoders:
             Containers.encoder_desc_ndarray.clear()
             results[str(encoder)] = dict()
-            print(f"Using encoder: {encoder}")
-            for threshold in arange(0.05, 1.0, 0.05):
-                print(f"threshold: {threshold}")
+            print(f"{datetime.now()} - Using encoder: {encoder}")
+            for threshold in arange(0.25, 1.0, 0.05):
+                print(f"{datetime.now()} - threshold: {threshold}")
                 gs = gold_standard(args.path)
                 partial_results = gs.compare_results(kg, encoder, threshold)
                 results[str(encoder)][threshold] = partial_results
