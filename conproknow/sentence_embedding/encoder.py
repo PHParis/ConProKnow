@@ -13,3 +13,7 @@ class Encoder(object):
     def get_embeddings(self, sentences: List[str]) -> ndarray:
         '''Return the embeddings of the given sentences.'''
         raise NotImplementedError
+
+    def close(self):
+        '''Clean the resources used by the encoder'''
+        raise NotImplementedError

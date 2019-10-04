@@ -12,6 +12,11 @@ class GenSenEncoder(Encoder):
             filename_prefix='nli_large_bothskip_parse',
             pretrained_emb='dataset/gensen/embedding/glove.840B.300d.h5'
         )
+        # words = set()
+        # for sentence in vocab:
+        #     sample = sentence.lower().split()
+        #     words.update(sample)
+        # self.gensen.vocab_expansion(words)
 
     def update_vocab(self, sentences: List[str]):
         raise NotImplementedError
@@ -38,6 +43,9 @@ class GenSenEncoder(Encoder):
     def download_files(self):
         # TODO: this fucntion should check presence of necessary files. Download them otherwise.
         raise NotImplementedError
+
+    def close(self):
+        pass
 
 
 if __name__ == "__main__":

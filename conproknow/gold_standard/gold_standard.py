@@ -5,6 +5,9 @@ from math import floor
 from conproknow.identity.context import ContextWGoldStand, Context
 from conproknow.algo.lattice_builder import get_propagation_set
 from conproknow.kg.knowledge_graph import KG
+from conproknow.algo.lattice_builder import get_descriptions, wd
+from conproknow.utils.wikidata import get_wiki_id
+from conproknow.sentence_embedding.encoder import Encoder
 
 
 class gold_standard_class(object):
@@ -46,33 +49,26 @@ class gold_standard(object):
         self.recall: float = mean([e[1] for e in prf])
         self.f_measure: float = mean([e[2] for e in prf])
 
-    # def get_descriptions(self, kg: KG):
-    #     '''Get alls property descriptions needed for this Gold Standard in order to feed the encoder vocabulary.'''
-    #     raise NotImplementedError
-    #     for gsc in self.contexts_by_class:
-    #         for c in gsc.contexts:
-    #             seed: str = c.resource
-    #             indiscernibles: Set[str] = c.properties
-    #             similars: Set[str] = c.instances
-    #             # get all properties that could be propagable
-    #             candidate_properties: Set[str] = {p for r in similars.union(
-    #                 {seed}) for (_, p, _) in kg.triples(r, "", "")}
-    #             candidate_properties = {get_wiki_id(
-    #                 p) for p in candidate_properties if "wikidata" in p}
-    #             # get couples of candidate property/description
-    #             candid_descs = get_descriptions(
-    #                 [wd + p for p in candidate_properties], kg)
-    #             if not candid_descs:
-    #                 return set()
-    #             # get couples of indiscernible property/description
-    #             indi_descs = get_descriptions(
-    #                 [wd + p for p in indiscernibles], kg)
-    #             if not indi_descs:
-    #                 return set()
-    #             vocab = {desc for (p, desc) in candid_descs}.union(
-    #                 {desc for (p, desc) in indi_descs})
+    def get_descs(self, kg: KG):
+        '''Get alls property descriptions needed for this Gold Standard in order to feed the encoder vocabulary.'''
+        results = set()
+        for gsc in self.contexts_by_class:
+            for c in gsc.contexts:
+                seed: str = c.resource
+                # indiscernibles: Set[str] = c.properties
+                similars: Set[str] = c.instances
+                # get all properties that could be propagable
+                candidate_properties: Set[str] = {p for r in similars.union(
+                    {seed}) for (_, p, _) in kg.triples(r, "", "")}
+                candidate_properties = {get_wiki_id(
+                    p) for p in candidate_properties if "wikidata" in p}
+                # get couples of candidate property/description
+                candid_descs = get_descriptions(
+                    [wd + p for p in candidate_properties], kg)
+                results.update([t[1] for t in candid_descs])
+        return list(results)
 
-    def compare_results(self, kg: KG, encoder_type: type, threshold: float) -> Dict[str, List[float]]:
+    def compare_results(self, kg: KG, encoder_type: Encoder, threshold: float) -> Dict[str, List[float]]:
         '''Compute propagable set for the given indiscernible sets and then, print precison, recall and f-measure.'''
         overall_precisions: List[float] = list()
         overall_recalls: List[float] = list()
@@ -80,6 +76,8 @@ class gold_standard(object):
         results: Dict[str, List[float]] = dict()
         for gsc in self.contexts_by_class:
             class_label = gsc.class_label
+            # if "film" not in class_label:
+            #     continue
             print(f"Processing class: {class_label}")
             precisions: List[float] = list()
             recalls: List[float] = list()
@@ -89,7 +87,7 @@ class gold_standard(object):
                 indiscernibles: Set[str] = c.properties
                 similars: Set[str] = c.instances
                 selected_candidates = get_propagation_set(
-                    seed, indiscernibles, similars, kg, encoder_type, threshold)
+                    seed, indiscernibles, similars, kg, encoder_type, threshold)[0]
                 gold_standard_selection: Set[str] = c.gold_standard
                 tp = gold_standard_selection.intersection(selected_candidates)
                 fp = selected_candidates.difference(tp)

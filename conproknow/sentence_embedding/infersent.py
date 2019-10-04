@@ -16,7 +16,8 @@ class InfersentEncoder(Encoder):
 
         W2V_PATH = 'dataset/GloVe/glove.840B.300d.txt' if V == 1 else 'dataset/fastText/crawl-300d-2M-subword.vec'
         self.infersent.set_w2v_path(W2V_PATH)
-        self.infersent.build_vocab(vocab)
+        if vocab is not None:
+            self.infersent.build_vocab(vocab)
 
     def update_vocab(self, sentences: List[str]):
         self.infersent.update_vocab(sentences)
@@ -34,3 +35,6 @@ class InfersentEncoder(Encoder):
     def download_files(self):
         # TODO: this fucntion should check presence of necessary files. Download them otherwise.
         raise NotImplementedError
+
+    def close(self):
+        pass

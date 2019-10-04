@@ -16,6 +16,9 @@ class UniversalSentenceEncoder(Encoder):
         # Import the Universal Sentence Encoder's TF Hub module
         self.embed = hub.Module(module_url)
         tf.logging.set_verbosity(tf.logging.ERROR)
+        self.session = tf.Session()
+        self.session.run([tf.global_variables_initializer(),
+                          tf.tables_initializer()])
 
     def update_vocab(self, sentences: List[str]):
         raise NotImplementedError
@@ -30,15 +33,20 @@ class UniversalSentenceEncoder(Encoder):
 
     def get_embeddings(self, sentences: List[str], update_vocab: bool = False) -> ndarray:
         '''Return the embeddings of the given sentences.'''
-        with tf.Session() as session:
-            session.run([tf.global_variables_initializer(),
-                         tf.tables_initializer()])
-            message_embeddings = session.run(self.embed(sentences))
-            return np.array(message_embeddings)
+        # with tf.Session() as session:
+        #     session.run([tf.global_variables_initializer(),
+        #                  tf.tables_initializer()])
+        #     message_embeddings = session.run(self.embed(sentences))
+        #     return np.array(message_embeddings)
+        message_embeddings = self.session.run(self.embed(sentences))
+        return np.array(message_embeddings)
 
     def download_files(self):
         # TODO: this fucntion should check presence of necessary files. Download them otherwise.
         raise NotImplementedError
+
+    def close(self):
+        self.session.close()
 
 
 if __name__ == "__main__":

@@ -3,6 +3,7 @@ from typing import Set, Dict, Optional, List, Tuple, Iterable
 from json import load, dumps
 from statistics import mean
 from numpy import ndarray, concatenate
+from numpy import mean as np_mean
 from conproknow.utils.helpers import keep_alphanumeric_only, timing, cosine_similarity
 from conproknow.identity.lattice import Lattice
 from conproknow.utils.wikidata import get_wiki_id
@@ -76,7 +77,7 @@ def build_lattice(threshold: float, encoder_type: type, resource: str, kg: KG, o
         if bool(intersection):
             context = lattice.build_context(set(), {p}, intersection)
             context.propagables = get_propagation_set(
-                context.resource, context.properties, context.instances, kg, encoder_type, threshold)
+                context.resource, context.properties, context.instances, kg, encoder_type, threshold)[0]
             lattice.add(context, 1)
 
     if output:
@@ -134,8 +135,8 @@ def get_embeddings(encoder: Encoder, sentences: List[str]) -> List[ndarray]:
     return results
 
 
-def get_propagation_set(seed: str, indiscernibles: Set[str], similars: Set[str], kg: KG, encoder_type: type, threshold: float) -> Set[str]:
-    '''Return the set of properties that are propagable given the parameters.'''
+def get_propagation_set(seed: str, indiscernibles: Set[str], similars: Set[str], kg: KG, encoder_type: Encoder, threshold: float) -> Tuple[Set[str], List[List]]:
+    '''Return the set of properties that are propagable given the parameters and the scores for each tested candidates.'''
     # get all properties that could be propagable
     candidate_properties: Set[str] = {p for r in similars.union(
         {seed}) for (_, p, _) in kg.triples(r, "", "")}
@@ -152,22 +153,24 @@ def get_propagation_set(seed: str, indiscernibles: Set[str], similars: Set[str],
     indi_descs = get_descriptions([wd + p for p in indiscernibles], kg)
     if not indi_descs:
         return set()
-    vocab = {desc for (p, desc) in candid_descs}.union(
-        {desc for (p, desc) in indi_descs})
+    # vocab = {desc for (p, desc) in candid_descs}.union(
+    #     {desc for (p, desc) in indi_descs})
     results: Set[str] = set()
+    scores: Dict[str, float] = dict()
     if encoder_type is None:
         # we use the baseline
         baseline = Baseline()
         for (p, desc1) in candid_descs:
-            similarities = list()
+            distances = list()
             for (_, desc2) in indi_descs:
-                similarity = baseline.similarity(desc1, desc2)
-                similarities.append(similarity)
-            mean_similarity = mean(similarities)
+                distance = baseline.distance(desc1, desc2)
+                distances.append(distance)
+            mean_similarity = 1 - mean(distances)
+            scores[get_wiki_id(p)] = mean_similarity
             if mean_similarity >= threshold:
                 results.add(p)
     else:
-        encoder: Encoder = encoder_type(vocab)
+        encoder: Encoder = encoder_type  # encoder_type(vocab)
         # encoder.update_vocab({desc for (p, desc) in candid_descs}.union(
         #     {desc for (p, desc) in indi_descs}))
 
@@ -175,15 +178,20 @@ def get_propagation_set(seed: str, indiscernibles: Set[str], similars: Set[str],
         indi_embeds = get_embeddings(encoder,
                                      [desc for (p, desc) in indi_descs])
 
+        mean_vectors = np_mean(indi_embeds, axis=0)
         # getting candidate set embeddings
         candid_embeds = get_embeddings(encoder,
                                        [desc for (p, desc) in candid_descs])
         for i, candid_embed in enumerate(candid_embeds):
-            similarities = list()
-            for indi_embed in indi_embeds:
-                similarity = cosine_similarity(candid_embed, indi_embed)
-                similarities.append(similarity)
-            mean_similarity = mean(similarities)
-            if mean_similarity >= threshold:
+            sim = cosine_similarity(candid_embed, mean_vectors)
+            scores[get_wiki_id(candid_descs[i][0])] = sim
+            if sim >= threshold:
                 results.add(candid_descs[i][0])
-    return {get_wiki_id(p) for p in results}
+            # similarities = list()
+            # for indi_embed in indi_embeds:
+            #     similarity = cosine_similarity(candid_embed, indi_embed)
+            #     similarities.append(similarity)
+            # mean_similarity = mean(similarities)
+            # if mean_similarity >= threshold:
+            #     results.add(candid_descs[i][0])
+    return ({get_wiki_id(p) for p in results}, sorted([[p, scores[p]] for p in scores], key=lambda x: x[1]))

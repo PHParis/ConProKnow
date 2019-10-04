@@ -15,9 +15,13 @@ from conproknow.sentence_embedding.gensen_encoder import GenSenEncoder
 from conproknow.sentence_embedding.infersent import InfersentEncoder
 from conproknow.sentence_embedding.universal_sentence_encoder import UniversalSentenceEncoder
 from conproknow.algo.containers import Containers
+from conproknow.sentence_embedding.encoder import Encoder
+from conproknow.utils.helpers import timing
+# from conproknow.utils.gs import gs  # TODO: remove deprecated class
 
 
-if __name__ == "__main__":
+@timing
+def main():
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers(dest='command')
     parser_lattice = subparsers.add_parser("lattice")
@@ -44,9 +48,9 @@ if __name__ == "__main__":
     # output_dir = "/data2/hamdif/doctorants/ph/xp/"
     # gold_standard_path = "gold_standard/gold_standard.json"
     encoders = [
-        # None,
-        # GenSenEncoder,
-        # InfersentEncoder,
+        None,
+        GenSenEncoder,
+        InfersentEncoder,
         UniversalSentenceEncoder,
     ]
     print(f"Opening HDT file: {args.hdt}")
@@ -54,26 +58,38 @@ if __name__ == "__main__":
     print(f"Mode: {args.command}")
 
     if args.command == "lattice":
-        threshold = 0.1
-        encoder = InfersentEncoder
+        threshold = 0.9
+        encoder = InfersentEncoder(None)  # TODO: expand vocab later
         lattice = build_lattice(threshold, encoder,
                                 args.resource, kg, args.output, False)
+        encoder.close()
     else:
         results: Dict[str, Dict[float, Dict[str, List[float]]]] = dict()
+        g_standard = gold_standard(args.path)
+        descs = g_standard.get_descs(kg)
         for encoder in encoders:
+            enc = None
+            if encoder is not None:
+                enc: Encoder = encoder(descs)
             Containers.encoder_desc_ndarray.clear()
             results[str(encoder)] = dict()
             print(f"{datetime.now()} - Using encoder: {encoder}")
-            for threshold in arange(0.25, 1.0, 0.05):
+            for threshold in arange(0.00, 1.03, 0.05):
                 print(f"{datetime.now()} - threshold: {threshold}")
-                gs = gold_standard(args.path)
-                partial_results = gs.compare_results(kg, encoder, threshold)
+                partial_results = g_standard.compare_results(
+                    kg, enc, threshold)
                 results[str(encoder)][threshold] = partial_results
                 print(f"Saving results in results.json...")
                 with open("results.json", mode="w", encoding="utf-8") as f:
                     dump(results, f, sort_keys=True, indent=4)
+
+            if encoder is not None:
+                enc.close()
     print("end!")
 
+
+if __name__ == "__main__":
+    main()
 # V=2
 # class comics character:
 #     precision: 68.16%
@@ -99,3 +115,9 @@ if __name__ == "__main__":
 #         precision: 67.7%
 #         recall: 81.93%
 #         f-measure: 70.12%
+
+
+# class film :
+# precision: 80.16%
+# recall: 72.33%
+# f-measure: 73.91%
