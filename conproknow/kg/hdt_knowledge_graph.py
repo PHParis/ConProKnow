@@ -1,7 +1,8 @@
 from conproknow.kg.knowledge_graph import KG
 from hdt import HDTDocument
 from typing import Iterator, Tuple, Optional
-
+import re
+import string
 
 class HDT(KG):
 
@@ -55,5 +56,9 @@ class HDT(KG):
         for o in self.objects(resource, "http://schema.org/description"):
             if o.endswith("@en"):
                 # delete trailing @en and double quotes
-                return o[1:len(o) - 4]
+                input_str = o[1:len(o) - 4]
+                # input_str = re.sub(r'\d+', '', input_str) # remove numbers
+                # input_str = input_str.translate(str.maketrans("","", string.punctuation)) # Punctuation removal
+                # input_str = input_str.strip().lower() # To remove leading and ending spaces and put it in lower case
+                return input_str
         return None
