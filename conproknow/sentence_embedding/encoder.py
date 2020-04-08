@@ -10,7 +10,7 @@ class Encoder(object):
         '''Return the embedding of the given sentence.'''
         raise NotImplementedError
 
-    def get_embeddings(self, sentences: List[str]) -> ndarray:
+    def get_embeddings(self, sentences: List[str], update_vocab: bool) -> ndarray:
         '''Return the embeddings of the given sentences.'''
         raise NotImplementedError
 

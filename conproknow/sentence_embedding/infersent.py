@@ -29,7 +29,10 @@ class InfersentEncoder(Encoder):
     def get_embeddings(self, sentences: List[str], update_vocab: bool = False) -> ndarray:
         '''Return the embeddings of the given sentences.'''
         if update_vocab:
-            self.infersent.update_vocab(sentences)
+            if "word_vec" not in self.infersent.__dict__:
+                self.infersent.build_vocab(sentences)
+            else:
+                self.infersent.update_vocab(sentences)
         return self.infersent.encode(sentences, tokenize=True)
 
     def download_files(self):

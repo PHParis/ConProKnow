@@ -13,7 +13,7 @@ from conproknow.sentence_embedding.baseline import Baseline
 from conproknow.algo.containers import Containers
 
 
-@timing
+# @timing
 def build_lattice(threshold: float, encoder_type: type, resource: str, kg: KG, output_dir: str, saving_partial_results: bool, props_to_ignore: Set[str] = None, subjects_to_filter: Set[str] = None, desc_by_props: Dict[str, str] = None, output: bool = False) -> Optional[Lattice]:
     dump_path_context = join(
         output_dir, f"identity_context_{keep_alphanumeric_only(resource)}.json") if output_dir is not None else None
@@ -45,7 +45,7 @@ def build_lattice(threshold: float, encoder_type: type, resource: str, kg: KG, o
                 continue
             nb_shared_subjects = kg.count("", p, o)
             if output:
-                print(f"shared subjects: {nb_shared_subjects} ")
+                print(f"shared subjects: {nb_shared_subjects} ({p})")
             subjects = {s for s in kg.subjects(p, o) if s != resource}
             if subjects_to_filter is not None:  # we search only subjects that share the same type and all subject in subjects_to_filter have the same types
                 subjects.intersection_update(subjects_to_filter)
@@ -66,6 +66,7 @@ def build_lattice(threshold: float, encoder_type: type, resource: str, kg: KG, o
         return None
     lattice = Lattice(resource)
     for p in result:
+        print(f"building level 1 of {p}")
         intersection = set()
         first = True
         for o in result[p]:
@@ -74,11 +75,14 @@ def build_lattice(threshold: float, encoder_type: type, resource: str, kg: KG, o
                 intersection.update(set(result[p][o]))
             else:
                 intersection.intersection_update(set(result[p][o]))
+        print(f"# of subjects {len(intersection)}")
         if bool(intersection):
-            context = lattice.build_context(set(), {p}, intersection)
-            context.propagables = get_propagation_set(
-                context.resource, context.properties, context.instances, kg, encoder_type, threshold)[0]
-            lattice.add(context, 1)
+            context = lattice.build_context(set(), {get_wiki_id(p)}, intersection)
+            res = get_propagation_set(
+                    context.resource, context.properties, context.instances, kg, encoder_type, threshold)
+            if context.propagables:
+                context.propagables = res[0]
+                lattice.add(context, 1)
 
     if output:
         print("building lattices")
@@ -113,10 +117,12 @@ props_to_ignore: Set[str] = {"P31",
                              "P2302",
                              "P1545",
                              "P973",
-                             "P1659"}
+                             "P1659",
+                             "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+                             "http://schema.org/description"}
 
 
-def get_embeddings(encoder: Encoder, sentences: List[str]) -> List[ndarray]:
+def get_embeddings(encoder: Encoder, sentences: List[str], update_vocab = False) -> List[ndarray]:
     to_compute: List[str] = list()
     results: List[ndarray] = list()
     for s in sentences:
@@ -126,7 +132,7 @@ def get_embeddings(encoder: Encoder, sentences: List[str]) -> List[ndarray]:
             to_compute.append(s)
     if to_compute:
         # computation needed!!!
-        embeddings = encoder.get_embeddings(to_compute)
+        embeddings = encoder.get_embeddings(to_compute, update_vocab)
         for i, embed in enumerate(embeddings):
             Containers.encoder_desc_ndarray[to_compute[i]] = embed
         results.clear()
@@ -142,6 +148,9 @@ def get_propagation_set(seed: str, indiscernibles: Set[str], similars: Set[str],
         {seed}) for (_, p, _) in kg.triples(r, "", "")}
     candidate_properties = {get_wiki_id(
         p) for p in candidate_properties if "wikidata" in p}.difference(props_to_ignore)
+    # TODO: correction under provoked a bug
+    # indiscernibles = {get_wiki_id(
+    #     p) for p in indiscernibles if "wikidata" in p}.difference(props_to_ignore)
     # removes indiscernible set because they are propagable by definition
     candidate_properties.difference_update(indiscernibles)
     # get couples of candidate property/description
@@ -176,12 +185,12 @@ def get_propagation_set(seed: str, indiscernibles: Set[str], similars: Set[str],
 
         # getting indiscernible set embeddings
         indi_embeds = get_embeddings(encoder,
-                                     [desc for (p, desc) in indi_descs])
+                                     [desc for (p, desc) in indi_descs], True)
 
         mean_vectors = np_mean(indi_embeds, axis=0)
         # getting candidate set embeddings
         candid_embeds = get_embeddings(encoder,
-                                       [desc for (p, desc) in candid_descs])
+                                       [desc for (p, desc) in candid_descs], True)
         for i, candid_embed in enumerate(candid_embeds):
             sim = cosine_similarity(candid_embed, mean_vectors)
             scores[get_wiki_id(candid_descs[i][0])] = sim

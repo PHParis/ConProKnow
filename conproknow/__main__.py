@@ -9,7 +9,7 @@ from datetime import datetime
 from conproknow.identity.lattice import Lattice
 from conproknow.kg.knowledge_graph import KG
 from conproknow.kg.hdt_knowledge_graph import HDT
-from conproknow.algo.lattice_builder import build_lattice
+from conproknow.algo.lattice_builder import build_lattice, props_to_ignore
 from conproknow.gold_standard.gold_standard import gold_standard
 from conproknow.sentence_embedding.gensen_encoder import GenSenEncoder
 from conproknow.sentence_embedding.infersent import InfersentEncoder
@@ -60,8 +60,9 @@ def main():
     if args.command == "lattice":
         threshold = 0.9
         encoder = InfersentEncoder(None)  # TODO: expand vocab later
-        lattice = build_lattice(threshold, encoder,
-                                args.resource, kg, args.output, False)
+        lattice = build_lattice(threshold=threshold, encoder_type=encoder,
+                                resource=args.resource, kg=kg, 
+                                output_dir=args.output, saving_partial_results=False, output=True, props_to_ignore=props_to_ignore)
         encoder.close()
     else:
         results: Dict[str, Dict[float, Dict[str, List[float]]]] = dict()
