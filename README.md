@@ -59,3 +59,12 @@ To create an identity lattice:
  ```bash
  python3 -m conproknow gold --hdt /path/to/wikidata2018_09_11.hdt
  ``` -->
+
+ ## Results
+
+ The precision:
+ ![Precision](https://github.com/PHParis/ConProKnow/raw/master/img/overall_precision.png "Precision")
+
+ 
+ The recall:
+ ![Precision](https://github.com/PHParis/ConProKnow/raw/master/img/overall_recall.png "Recall")
