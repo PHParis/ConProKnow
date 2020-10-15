@@ -91,34 +91,4 @@ def main():
 
 if __name__ == "__main__":
     main()
-# V=2
-# class comics character:
-#     precision: 68.16%
-#     recall: 83.33%
-#     f-measure: 71.48%
-# class country:
-#     precision: 69.66%
-#     recall: 85.83%
-#     f-measure: 70.77%
-# class film :
-#     precision: 76.08%
-#     recall: 76.08%
-#     f-measure: 73.33%
-# class literary work:
-#     precision: 62.93%
-#     recall: 77.73%
-#     f-measure: 68.22%
-# class political party:
-#         precision: 61.66%
-#         recall: 86.66%
-#         f-measure: 66.83%
-# Overall:
-#         precision: 67.7%
-#         recall: 81.93%
-#         f-measure: 70.12%
 
-
-# class film :
-# precision: 80.16%
-# recall: 72.33%
-# f-measure: 73.91%
